@@ -1,9 +1,14 @@
 const productService = require('../services/productService');
+const { validationResult } = require('express-validator');
 
-// 获取所有商品
+// 获取所有商品 + 分页 + 搜索
 exports.getProducts = async (req, res) => {
   try {
-    const data = await productService.getAllProducts();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const keyword = req.query.keyword || '';
+
+    const data = await productService.getAllProducts(page, limit, keyword);
     res.json({ code: 200, msg: 'success', data });
   } catch (err) {
     res.status(500).json({ code: 500, msg: '服务器错误' });
@@ -14,40 +19,63 @@ exports.getProducts = async (req, res) => {
 exports.getProduct = async (req, res) => {
   try {
     const data = await productService.getProductById(req.params.id);
+    if (!data) return res.json({ code: 404, msg: '商品不存在' });
     res.json({ code: 200, data });
   } catch (err) {
-    res.status(500).json({ code: 500 });
+    res.status(500).json({ code: 500, msg: '服务器错误' });
   }
 };
 
 // 新增商品
 exports.addProduct = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.json({ code: 400, msg: '参数错误', errors: errors.array() });
+  }
+
   try {
     const { name, price, stock } = req.body;
+    if (stock < 0) return res.json({ code: 400, msg: '库存不能小于0' });
+
     await productService.createProduct(name, price, stock);
     res.json({ code: 200, msg: '添加成功' });
   } catch (err) {
-    res.status(500).json({ code: 500 });
+    res.status(500).json({ code: 500, msg: '服务器错误' });
   }
 };
 
 // 修改商品
 exports.editProduct = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.json({ code: 400, msg: '参数错误', errors: errors.array() });
+  }
+
   try {
     const { name, price, stock } = req.body;
-    await productService.updateProduct(req.params.id, name, price, stock);
+    const id = req.params.id;
+
+    const exists = await productService.getProductById(id);
+    if (!exists) return res.json({ code: 404, msg: '商品不存在' });
+    if (stock < 0) return res.json({ code: 400, msg: '库存不能小于0' });
+
+    await productService.updateProduct(id, name, price, stock);
     res.json({ code: 200, msg: '修改成功' });
   } catch (err) {
-    res.status(500).json({ code: 500 });
+    res.status(500).json({ code: 500, msg: '服务器错误' });
   }
 };
 
 // 删除商品
 exports.delProduct = async (req, res) => {
   try {
-    await productService.deleteProduct(req.params.id);
+    const id = req.params.id;
+    const exists = await productService.getProductById(id);
+    if (!exists) return res.json({ code: 404, msg: '商品不存在' });
+
+    await productService.deleteProduct(id);
     res.json({ code: 200, msg: '删除成功' });
   } catch (err) {
-    res.status(500).json({ code: 500 });
+    res.status(500).json({ code: 500, msg: '服务器错误' });
   }
 };
