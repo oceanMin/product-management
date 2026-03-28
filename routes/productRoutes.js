@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
 const { body } = require('express-validator');
+const auth = require('../middleware/auth');
 
 // 验证规则
 const productValidate = [
@@ -11,10 +12,10 @@ const productValidate = [
 ];
 
 // 接口
-router.get('/products', productController.getProducts);
-router.get('/product/:id', productController.getProduct);
-router.post('/product', productValidate, productController.addProduct);
-router.put('/product/:id', productValidate, productController.editProduct);
-router.delete('/product/:id', productController.delProduct);
+router.get('/products', auth, productController.getProducts);
+router.get('/product/:id', auth, productController.getProduct);
+router.post('/product', auth, productValidate, productController.addProduct);
+router.put('/product/:id', auth, productValidate, productController.editProduct);
+router.delete('/product/:id', auth, productController.delProduct);
 
 module.exports = router;
