@@ -40,3 +40,40 @@ exports.login = async (req, res) => {
     res.status(500).json({ code: 500, msg: "服务器错误" });
   }
 };
+
+// 修改密码
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const adminId = req.admin.id; // 从token中获取
+
+    if (!oldPassword || !newPassword) {
+      return res.json({ code: 400, msg: "旧密码和新密码不能为空" });
+    }
+    if (newPassword.length < 6) {
+      return res.json({ code: 400, msg: "新密码长度不能少于6位" });
+    }
+
+    // 查询当前管理员
+    const admin = await adminService.findById(adminId);
+    if (!admin) {
+      return res.json({ code: 400, msg: "管理员不存在" });
+    }
+
+    // 验证旧密码
+    const isOk = await adminService.comparePassword(oldPassword, admin.password);
+    if (!isOk) {
+      return res.json({ code: 400, msg: "旧密码错误" });
+    }
+
+    // 加密新密码
+    const bcrypt = require('bcryptjs');
+    const newHash = bcrypt.hashSync(newPassword, 10);
+
+    // 更新密码
+    await adminService.updatePassword(adminId, newHash);
+    res.json({ code: 200, msg: "密码修改成功" });
+  } catch (err) {
+    res.status(500).json({ code: 500, msg: "服务器错误" });
+  }
+};

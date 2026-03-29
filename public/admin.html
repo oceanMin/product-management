@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>商品管理</title>
+  <style>
+    table { border-collapse: collapse; width: 80%; margin: 20px auto; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    button { margin: 0 5px; }
+  </style>
+</head>
+<body>
+  <div style="text-align: right; margin: 10px;">
+    <button onclick="logout()">退出登录</button>
+  </div>
+  <h2 style="text-align: center;">商品管理</h2>
+  <div style="text-align: center; margin: 10px;">
+    <input id="name" placeholder="商品名">
+    <input id="price" placeholder="价格" type="number">
+    <input id="stock" placeholder="库存" type="number">
+    <button onclick="addProduct()">添加商品</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>名称</th>
+        <th>价格</th>
+        <th>库存</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="productList"></tbody>
+  </table>
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) location.href = '/login.html';
+
+    // 获取商品列表
+    async function getProducts() {
+      const res = await fetch('/api/products', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      const list = data.data.list;
+      const html = list.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.price}</td>
+          <td>${p.stock}</td>
+          <td>
+            <button onclick="editProduct(${p.id})">编辑</button>
+            <button onclick="delProduct(${p.id})">删除</button>
+          </td>
+        </tr>
+      `).join('');
+      document.getElementById('productList').innerHTML = html;
+    }
+
+    // 添加商品
+    async function addProduct() {
+      const name = document.getElementById('name').value;
+      const price = document.getElementById('price').value;
+      const stock = document.getElementById('stock').value;
+      const res = await fetch('/api/product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ name, price, stock })
+      });
+      const data = await res.json();
+      alert(data.msg);
+      getProducts();
+    }
+
+    // 删除商品
+    async function delProduct(id) {
+      if (!confirm('确定删除？')) return;
+      const res = await fetch(`/api/product/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      alert(data.msg);
+      getProducts();
+    }
+
+    // 退出登录
+    function logout() {
+      localStorage.removeItem('token');
+      location.href = '/login.html';
+    }
+
+    getProducts();
+  </script>
+</body>
+</html>
