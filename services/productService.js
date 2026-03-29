@@ -31,20 +31,20 @@ exports.getProductById = async (id) => {
   return rows[0];
 };
 
-// 新增
-exports.createProduct = async (name, price, stock) => {
+// 新增（带分类）
+exports.createProduct = async (name, price, stock, category_id = null) => {
   const [result] = await pool.query(
-    'INSERT INTO products (name, price, stock) VALUES (?, ?, ?)',
-    [name, price, stock]
+    'INSERT INTO products (name, price, stock, category_id) VALUES (?, ?, ?, ?)',
+    [name, price, stock, category_id]
   );
   return result;
 };
 
-// 修改
-exports.updateProduct = async (id, name, price, stock) => {
+// 修改（带分类）
+exports.updateProduct = async (id, name, price, stock, category_id = null) => {
   const [result] = await pool.query(
-    'UPDATE products SET name=?, price=?, stock=? WHERE id=?',
-    [name, price, stock, id]
+    'UPDATE products SET name=?, price=?, stock=?, category_id=? WHERE id=?',
+    [name, price, stock, category_id, id]
   );
   return result;
 };
