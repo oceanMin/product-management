@@ -6,19 +6,32 @@
 - **后端框架**：Node.js + Express
 - **数据库**：MySQL
 - **数据库连接**：mysql2
+- **JWT** - 身份认证
+- **Passlib** - 密码加密
 - **其他**：cors（解决跨域）
 
 ## 项目架构
 ```bash
 product-management/
+├── admin-vue/           # 前端项目
 ├── config/          # 配置文件（数据库连接）
-│   └── db.js
+│   ├── db.js      # 配置文件（数据库连接）
+│   └── jwt.js      # 配置文件（JWT）
 ├── controllers/     # 控制器（处理业务逻辑）
-│   └── productController.js
+│   ├── adminController.js  # 管理员控制器
+│   ├── categoryController.js # 分类控制器
+│   └── productController.js  # 商品控制器
+├── middleware/         # 中间件（处理请求）
+│   └── auth.js  # 身份认证中间件
 ├── routes/          # 路由（定义接口地址）
-│   └── productRoutes.js
+│   ├── adminRoutes.js  # 管理员路由
+│   ├── categoryRoutes.js # 分类路由
+│   └── productRoutes.js  # 商品路由
 ├── services/        # 服务层（数据库操作）
-│   └── productService.js
+│   ├── adminService.js  # 管理员服务
+│   ├── categoryService.js # 分类服务
+│   ├── logService.js # 日志服务
+│   └── productService.js  # 商品服务
 ├── .gitignore       # Git忽略文件
 ├── app.js           # 项目入口文件
 ├── package.json     # 项目依赖配置
@@ -83,11 +96,15 @@ node app.js
 
 | 接口功能 | 请求方式 | 接口地址 | 请求参数 |
 |---------|---------|----------|----------|
+| 登录 | POST | /login | username, password（请求体JSON） |
+| 注册 | POST | /register | username, password（请求体JSON） |
 | 获取所有商品 | GET | /products | 无 |
 | 根据ID获取单个商品 | GET | /product/:id | id（路径参数） |
 | 新增商品 | POST | /product | name, price, stock（请求体JSON） |
 | 修改商品 | PUT | /product/:id | id（路径参数），name, price, stock（请求体JSON） |
 | 删除商品 | DELETE | /product/:id | id（路径参数） |
+| 获取所有分类 | GET | /categories | 无 |
+| 用户登出 | POST | /logout | 无 |
 
 ### 请求示例（新增商品）
 - 请求地址：POST http://localhost:3000/api/product
@@ -116,6 +133,18 @@ node app.js
   "msg": "服务器错误"
 }
 ```
+
+## 前端项目启动
+```
+cd admin-vue
+```
+```
+npm install
+```
+```
+npm run dev
+```
+
 
 ## 注意事项
 1. 运行项目前，务必启动本地MySQL服务，否则会连接数据库失败
